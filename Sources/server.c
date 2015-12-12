@@ -12,7 +12,7 @@
 
 #define DEFAULT_READ_BUFFER_SIZE 8192
 
-struct SSSocketServer {
+struct LEWSocketServer {
     // A pointer to the event loop that is handling event on 
     // this server socket.
     struct ev_loop *eventLoop;
@@ -28,10 +28,10 @@ struct SSSocketServer {
     struct ev_io acceptWatcher;
 
     // A listener structure for events on this socket.
-    SSSocketServerListener *listener;
+    LEWSocketServerListener *listener;
 };
 
-typedef struct SSConnection {
+typedef struct LEWConnection {
     /**
      * User specific connection data used to identify a connection.
      */
@@ -66,13 +66,13 @@ typedef struct SSConnection {
     /**
      * The server this connection belongs to.
      */
-    SSSocketServer *server;
-} SSConnection;
+    LEWSocketServer *server;
+} LEWConnection;
 
 /**
  * Gets the connection context corresponding to a particular connection object.
  */
-void *ss_connection_get_context(SSConnection *connection)
+void *lew_connection_get_context(LEWConnection *connection)
 {
     return connection->connectionContext;
 }
@@ -81,7 +81,7 @@ void *ss_connection_get_context(SSConnection *connection)
  * Indicates that connection has data to be written so that it will be queried for the data 
  * to send to the client.
  */
-void ss_connection_set_writeable(SSConnection *connection)
+void lew_connection_set_writeable(LEWConnection *connection)
 {
     ev_io_start(connection->server->eventLoop, &connection->writeWatcher);
 }
@@ -89,7 +89,7 @@ void ss_connection_set_writeable(SSConnection *connection)
 /**
  * Clears the writeability of a connection.
  */
-void ss_connection_clear_writeable(SSConnection *connection)
+void lew_connection_clear_writeable(LEWConnection *connection)
 {
     ev_io_stop(connection->server->eventLoop, &connection->writeWatcher);
 }
@@ -97,7 +97,7 @@ void ss_connection_clear_writeable(SSConnection *connection)
 /**
  * Closes the connection.
  */
-void ss_connection_close(SSConnection *connection)
+void lew_connection_close(LEWConnection *connection)
 {
     close(connection->clientSocket);
 }
@@ -106,7 +106,7 @@ static void connection_read_callback(struct ev_loop *loop, struct ev_io *watcher
 static void connection_write_callback(struct ev_loop *loop, struct ev_io *watcher, int revents);
 static void server_accept_callback(struct ev_loop *loop, struct ev_io *watcher, int revents);
 
-SSSocketServer *ss_start_server(const char *host, int port, SSSocketServerListener *listener)
+LEWSocketServer *lew_start_server(const char *host, int port, LEWSocketServerListener *listener)
 {
     int serverSocket;
     if ((serverSocket = socket(PF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)) < 0)
@@ -136,7 +136,7 @@ SSSocketServer *ss_start_server(const char *host, int port, SSSocketServerListen
     }
 
     struct ev_loop *loop = ev_default_loop(0);
-    SSSocketServer *out = calloc(1, sizeof(SSSocketServer));
+    LEWSocketServer *out = calloc(1, sizeof(LEWSocketServer));
     out->host = host ? strdup(host) : NULL;
     out->port = port;
     out->eventLoop = loop;
@@ -175,11 +175,11 @@ static void server_accept_callback(struct ev_loop *loop, struct ev_io *watcher, 
         return;
     }
 
-    SSSocketServer *server = (SSSocketServer *)watcher->data;
+    LEWSocketServer *server = (LEWSocketServer *)watcher->data;
     void *connectionData = server->listener->createConnectionContext();
     if (connectionData)
     {
-        SSConnection *connection = (SSConnection *)calloc(1, sizeof(SSConnection));
+        LEWConnection *connection = (LEWConnection *)calloc(1, sizeof(LEWConnection));
         connection->readBufferSize = DEFAULT_READ_BUFFER_SIZE;
         connection->clientSocket = clientSocket;
         connection->readWatcher.data = connection;
@@ -200,7 +200,7 @@ static void server_accept_callback(struct ev_loop *loop, struct ev_io *watcher, 
 
 static void connection_read_callback(struct ev_loop *loop, struct ev_io *watcher, int revents)
 {
-    SSConnection *connection = (SSConnection *)watcher->data;
+    LEWConnection *connection = (LEWConnection *)watcher->data;
     ssize_t length = read(connection->clientSocket, connection->readBuffer, connection->readBufferSize);
     if (length == 0)
     {
@@ -221,7 +221,7 @@ static void connection_read_callback(struct ev_loop *loop, struct ev_io *watcher
 
 static void connection_write_callback(struct ev_loop *loop, struct ev_io *watcher, int revents)
 {
-    SSConnection *connection = (SSConnection *)watcher->data;
+    LEWConnection *connection = (LEWConnection *)watcher->data;
     const char *writeData = NULL;
 
     size_t writeLength = connection->server->listener->writeDataRequested(connection, &writeData);
@@ -234,6 +234,6 @@ static void connection_write_callback(struct ev_loop *loop, struct ev_io *watche
         }
     } else {
         // no data available so clear connection writeable
-        ss_connection_clear_writeable(connection);
+        lew_connection_clear_writeable(connection);
     }
 }

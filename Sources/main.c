@@ -26,18 +26,18 @@ void *createConnectionContextCallback()
 /**
  * Called when data has been received for this connection from a client.
  */
-void processDataCallback(SSConnection *connection, const char *data, size_t length)
+void processDataCallback(LEWConnection *connection, const char *data, size_t length)
 {
-    EchoConnection *echoconn = (EchoConnection *)ss_connection_get_context(connection);
+    EchoConnection *echoconn = (EchoConnection *)lew_connection_get_context(connection);
     memcpy(echoconn->readBuffer, data, length);
     echoconn->length = length;
-    ss_connection_set_writeable(connection);
+    lew_connection_set_writeable(connection);
 }
 
 /**
  * Called to indicate connection was closed.
  */
-void connectionClosedCallback(SSConnection *connection)
+void connectionClosedCallback(LEWConnection *connection)
 {
     printf("Connection closed...\n");
 }
@@ -47,10 +47,10 @@ void connectionClosedCallback(SSConnection *connection)
  * The buffer is an output parameters to be updated by the listener.
  * Return the number of bytes available in the buffer.
  */
-size_t writeDataRequestedCallback(SSConnection *connection, const char **buffer)
+size_t writeDataRequestedCallback(LEWConnection *connection, const char **buffer)
 {
     printf("Write data requested...\n");
-    EchoConnection *echoconn = (EchoConnection *)ss_connection_get_context(connection);
+    EchoConnection *echoconn = (EchoConnection *)lew_connection_get_context(connection);
     *buffer = echoconn->readBuffer;
     return echoconn->length;
 }
@@ -59,20 +59,20 @@ size_t writeDataRequestedCallback(SSConnection *connection, const char **buffer)
  * Called to indicate that nWritten bytes of data has been written and that the connection
  * object should update its write buffers to discard this data.
  */
-void dataWrittenCallback(SSConnection *connection, size_t nWritten)
+void dataWrittenCallback(LEWConnection *connection, size_t nWritten)
 {
-    EchoConnection *echoconn = (EchoConnection *)ss_connection_get_context(connection);
+    EchoConnection *echoconn = (EchoConnection *)lew_connection_get_context(connection);
     echoconn->length -= nWritten;
 }
 
 int main(void)
 {
-    SSSocketServerListener listener;
+    LEWSocketServerListener listener;
     listener.createConnectionContext = createConnectionContextCallback;
     listener.processData = processDataCallback;
     listener.connectionClosed = connectionClosedCallback;
     listener.writeDataRequested = writeDataRequestedCallback;
     listener.dataWritten = dataWrittenCallback;
 
-    ss_start_server(NULL, 9999, &listener);
+    lew_start_server(NULL, 9999, &listener);
 }

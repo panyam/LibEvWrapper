@@ -17,7 +17,7 @@ typedef struct EchoConnection {
  *
  * This method must NOT return NULL.  If it returns NULL, then the connection is refused.
  */
-void *createConnectionContextCallback()
+void *connectionAcceptedCallback()
 {
     EchoConnection *out = calloc(1, sizeof(EchoConnection));
     return out;
@@ -26,7 +26,7 @@ void *createConnectionContextCallback()
 /**
  * Called when data has been received for this connection from a client.
  */
-void processDataCallback(LEWConnection *connection, const char *data, size_t length)
+void dataReadCallback(LEWConnection *connection, const char *data, size_t length)
 {
     EchoConnection *echoconn = (EchoConnection *)lew_connection_get_context(connection);
     memcpy(echoconn->readBuffer, data, length);
@@ -68,8 +68,8 @@ void dataWrittenCallback(LEWConnection *connection, size_t nWritten)
 int main(void)
 {
     LEWSocketServerListener listener;
-    listener.createConnectionContext = createConnectionContextCallback;
-    listener.processData = processDataCallback;
+    listener.connectionAccepted = connectionAcceptedCallback;
+    listener.dataRead = dataReadCallback;
     listener.connectionClosed = connectionClosedCallback;
     listener.writeDataRequested = writeDataRequestedCallback;
     listener.dataWritten = dataWrittenCallback;

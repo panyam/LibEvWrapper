@@ -34,12 +34,12 @@ typedef struct LEWSocketServerListener {
      *
      * This method must NOT return NULL.  If it returns NULL, then the connection is refused.
      */
-    void *(*createConnectionContext)();
+    void *(*connectionAccepted)();
 
     /**
      * Called when data has been received for this connection from a client.
      */
-    void (*processData)(LEWConnection *connection, const char *data, size_t length);
+    void (*dataRead)(LEWConnection *connection, const char *data, size_t length);
 
     /**
      * Called to indicate connection was closed.

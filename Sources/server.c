@@ -176,7 +176,7 @@ static void server_accept_callback(struct ev_loop *loop, struct ev_io *watcher, 
     }
 
     LEWSocketServer *server = (LEWSocketServer *)watcher->data;
-    void *connectionData = server->listener->createConnectionContext();
+    void *connectionData = server->listener->connectionAccepted();
     if (connectionData)
     {
         LEWConnection *connection = (LEWConnection *)calloc(1, sizeof(LEWConnection));
@@ -212,7 +212,7 @@ static void connection_read_callback(struct ev_loop *loop, struct ev_io *watcher
         // TODO: Cleanup connection
     } else if (length > 0)
     {
-        connection->server->listener->processData(connection, connection->readBuffer, length);
+        connection->server->listener->dataRead(connection, connection->readBuffer, length);
     } else if (errno != EAGAIN)
     {
         perror("Read error");

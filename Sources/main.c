@@ -26,7 +26,7 @@ void *connectionAcceptedCallback()
 /**
  * Called when data has been received for this connection from a client.
  */
-void dataReadCallback(LEWConnection *connection, const char *data, size_t length)
+void dataReceivedCallback(LEWConnection *connection, const char *data, size_t length)
 {
     EchoConnection *echoconn = (EchoConnection *)lew_connection_get_context(connection);
     memcpy(echoconn->readBuffer, data, length);
@@ -69,7 +69,7 @@ int main(void)
 {
     LEWSocketServerListener listener;
     listener.connectionAccepted = connectionAcceptedCallback;
-    listener.dataRead = dataReadCallback;
+    listener.dataReceived = dataReceivedCallback;
     listener.connectionClosed = connectionClosedCallback;
     listener.writeDataRequested = writeDataRequestedCallback;
     listener.dataWritten = dataWrittenCallback;

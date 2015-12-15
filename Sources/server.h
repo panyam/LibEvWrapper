@@ -39,7 +39,7 @@ typedef struct LEWSocketServerListener {
     /**
      * Called when data has been received for this connection from a client.
      */
-    void (*dataRead)(LEWConnection *connection, const char *data, size_t length);
+    void (*dataReceived)(LEWConnection *connection, const char *data, size_t length);
 
     /**
      * Called to indicate connection was closed.
